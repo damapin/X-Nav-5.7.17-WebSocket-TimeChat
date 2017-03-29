@@ -51,26 +51,27 @@ class SimpleChat(WebSocket):
         else:
             ltime_s = str(ltime.tm_sec)
         
-        time_to_send = 'Server: ' + ltime_h + ':' + ltime_m + ':' + ltime_s
-        try:
-            self.sendMessage(time_to_send)
-        except Exception as n:
-            print n
+        time_to_send = ltime_h + ':' + ltime_m + ':' + ltime_s
+
+        return time_to_send
 
     def handleMessage(self):
         if self.data is None:
             self.data = ''
 
         if self.data == 'getTime':
-            self.sendTime()
-        else:
-            for client in self.server.connections.itervalues():
-                if client != self:
-            	    cladd = str(client.address[0]) + ' : ' + str(client.address[1]) + ' says: '
-                    try:
-                        client.sendMessage( str(cladd) + str(self.data))
-                    except Exception as n:
-                        print n
+            self.data = self.sendTime()
+            try:
+                self.sendMessage(self.data)
+            except Exception as n:
+                print n
+
+        for client in self.server.connections.itervalues():
+            if client != self:
+                try:
+                    client.sendMessage(str(self.data))
+                except Exception as n:
+                    print n
 
     def handleConnected(self):
         print self.address, 'connected'
