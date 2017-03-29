@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+	<title>WebSocket Chat Client</title>
+	<style>
+		#output {
+			border: solid 1px #000;
+			margin-top: 10px;
+			padding-left: 20px;
+			font-family: sans-serif;
+			color: blue;
+			width: 60%;
+		}
+		.Me{
+			color: red;
+		}
+	</style>
+</head>
+<body>
+	
+	<form id="form">
+		<input type="text" id="message">
+		<button type="submit">Send</button>
+	</form>
+	
+	<hr>
+	
+	<div id="output"></div>
+	
+	<script>
+	
+		var inputBox = document.getElementById("message");
+		var output = document.getElementById("output");
+		var form = document.getElementById("form");
+ 
+		try {
+ 
+			var host = "ws://localhost:8000/";
+			console.log("Host:", host);
+			
+			var s = new WebSocket(host);
+			
+			s.onopen = function (e) {
+				console.log("Socket opened.");
+			};
+			
+			s.onclose = function (e) {
+				console.log("Socket closed.");
+			};
+			
+			s.onmessage = function (e) {
+				console.log("Socket message:", e.data);
+				var p = document.createElement("p");
+				p.innerHTML = e.data;
+				output.appendChild(p);
+			};
+			
+			s.onerror = function (e) {
+				console.log("Socket error:", e);
+			};
+			
+		} catch (ex) {
+			console.log("Socket exception:", ex);
+		}
+ 
+		form.addEventListener("submit", function (e) {
+			e.preventDefault();
+			var sp = document.createElement("p");
+			sp.className = 'Me';
+			sp.innerHTML = "Me: " + inputBox.value;
+			output.appendChild(sp);
+			s.send(inputBox.value);
+			inputBox.value = "";
+		}, false)
+ 
+	</script>
+ 
+</body>
+</html>

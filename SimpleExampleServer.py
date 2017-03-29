@@ -7,6 +7,7 @@ import signal
 import sys
 import ssl
 import logging
+import time
 from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer, SimpleSSLWebSocketServer
 from optparse import OptionParser
 
@@ -33,23 +34,50 @@ class SimpleEcho(WebSocket):
 
 class SimpleChat(WebSocket):
 
+    def sendTime(self):
+        ltime = time.localtime()
+        if ltime.tm_hour < 10:
+            ltime_h = '0' + str(ltime.tm_hour)
+        else:
+            ltime_h = str(ltime.tm_hour)
+
+        if ltime.tm_min < 10:
+            ltime_m = '0' + str(ltime.tm_min)
+        else:
+            ltime_m = str(ltime.tm_min)
+
+        if ltime.tm_sec < 10:
+            ltime_s = '0' + str(ltime.tm_sec)
+        else:
+            ltime_s = str(ltime.tm_sec)
+        
+        time_to_send = 'Server: ' + ltime_h + ':' + ltime_m + ':' + ltime_s
+        try:
+            self.sendMessage(time_to_send)
+        except Exception as n:
+            print n
+
     def handleMessage(self):
         if self.data is None:
             self.data = ''
 
-        for client in self.server.connections.itervalues():
-            if client != self:
-                try:
-                    client.sendMessage(str(self.address[0]) + ' - ' + str(self.data))
-                except Exception as n:
-                    print n
+        if self.data == 'getTime':
+            self.sendTime()
+        else:
+            for client in self.server.connections.itervalues():
+                if client != self:
+            	    cladd = str(client.address[0]) + ' : ' + str(client.address[1]) + ' says: '
+                    try:
+                        client.sendMessage( str(cladd) + str(self.data))
+                    except Exception as n:
+                        print n
 
     def handleConnected(self):
         print self.address, 'connected'
         for client in self.server.connections.itervalues():
             if client != self:
                 try:
-                    client.sendMessage(str(self.address[0]) + ' - connected')
+                    client.sendMessage( 'connected')
                 except Exception as n:
                     print n
 
@@ -58,7 +86,7 @@ class SimpleChat(WebSocket):
         for client in self.server.connections.itervalues():
             if client != self:
                 try:
-                    client.sendMessage(str(self.address[0]) + ' - disconnected')
+                    client.sendMessage('disconnected')
                 except Exception as n:
                     print n
 
